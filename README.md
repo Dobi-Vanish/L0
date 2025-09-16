@@ -5,10 +5,14 @@
 
 ### Установка и запуск
 
-Клонируйте репозиторий:
-```bash
-git clone https://github.com/Dobi-Vanish/L0
-cd L0
+### Запуск локально
+1. Клонируйте репозиторий:
+   ```bash
+   git clone https://github.com/Dobi-Vanish/DeNet_Test_Task
+2. Перейдите в папку deployments и запустите через makefile:
+   ```bash
+   cd DeNet_Test_Task/deployments
+   make up_build
 
 Перейдите в корнь проекта. Далее поочерёдно введите команды:
 ``bash
