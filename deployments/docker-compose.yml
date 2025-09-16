@@ -1,0 +1,159 @@
+version: '3.8'
+
+services:
+  zookeeper:
+    image: bitnami/zookeeper:3.8
+    environment:
+      - ALLOW_ANONYMOUS_LOGIN=yes
+      - ZOO_MAX_CLIENT_CNXNS=0
+    networks:
+      - kafka-net
+
+  kafka-1:
+    image: bitnami/kafka:3.4
+    depends_on:
+      - zookeeper
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=CLIENT://:9092,EXTERNAL://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka-1:9092,EXTERNAL://localhost:9094
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=CLIENT
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_NUM_PARTITIONS=3
+      - KAFKA_CFG_DEFAULT_REPLICATION_FACTOR=3
+      - KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR=3
+      - KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=3
+      - KAFKA_CFG_BROKER_ID=1
+    networks:
+      - kafka-net
+
+  kafka-2:
+    image: bitnami/kafka:3.4
+    depends_on:
+      - zookeeper
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=CLIENT://:9092,EXTERNAL://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka-2:9092,EXTERNAL://localhost:9095
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=CLIENT
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_BROKER_ID=2
+    networks:
+      - kafka-net
+
+  kafka-3:
+    image: bitnami/kafka:3.4
+    depends_on:
+      - zookeeper
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENERS=CLIENT://:9092,EXTERNAL://:9093
+      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka-3:9092,EXTERNAL://localhost:9096
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=CLIENT
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_BROKER_ID=3
+    networks:
+      - kafka-net
+
+  postgres:
+    image: postgres:13-alpine
+    environment:
+      POSTGRES_DB: orders
+      POSTGRES_USER: app_user
+      POSTGRES_PASSWORD: secure_password_123
+    ports:
+      - "5432:5432"
+    networks:
+      - app-net
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  mongodb:
+    image: mongo:5.0
+    ports:
+      - "27017:27017"
+    networks:
+      - app-net
+    volumes:
+      - mongodb_data:/data/db
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - app-net
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    ports:
+      - "8090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local-cluster
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    networks:
+      - kafka-net
+      - app-net
+
+  consumer:
+    build:
+      context: ..
+      dockerfile: consumer.Dockerfile
+    depends_on:
+      - postgres
+      - mongodb
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    environment:
+      KAFKA_BROKERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+      POSTGRES_DSN: postgres://app_user:secure_password_123@postgres:5432/orders?sslmode=disable
+      MONGODB_URI: mongodb://mongodb:27017
+    networks:
+      - app-net
+      - kafka-net
+
+  server:
+    build:
+      context: ..
+      dockerfile: server.Dockerfile
+    depends_on:
+      - postgres
+      - mongodb
+    ports:
+      - "8081:8081"
+    environment:
+      POSTGRES_DSN: postgres://app_user:secure_password_123@postgres:5432/orders?sslmode=disable
+      MONGODB_URI: mongodb://mongodb:27017
+      HTTP_SERVER_PORT: 8081
+    networks:
+      - app-net
+
+networks:
+  kafka-net:
+    driver: bridge
+  app-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  mongodb_data:
+  prometheus_data:
