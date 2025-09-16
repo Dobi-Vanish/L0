@@ -6,12 +6,12 @@
 ### Установка и запуск
 
 Клонируйте репозиторий:
-```bash
+``bash
 git clone https://github.com/Dobi-Vanish/L0
 cd L0
 
 Перейдите в корнь проекта. Далее поочерёдно введите команды:
-```bash
+``bash
 make build
 make docker-build
 make docker-up
