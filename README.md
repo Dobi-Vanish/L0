@@ -6,7 +6,7 @@
 ### Установка и запуск
 
 Клонируйте репозиторий:
-``bash
+```bash
 git clone https://github.com/Dobi-Vanish/L0
 cd L0
 
