@@ -16,8 +16,7 @@
    make docker-build
    make docker-up
    make migrate-up
-
-Перезапустите контейнеры для применения всех настроек:
+3. Перезапустите контейнеры для применения всех настроек:
    ```bash
    make docker-down
    make docker-up
