@@ -8,7 +8,7 @@
 ### Запуск локально
 1. Клонируйте репозиторий:
    ```bash
-   git clone https://github.com/Dobi-Vanish/DeNet_Test_Task
+   git clone [https://github.com/Dobi-Vanish/DeNet_Test_Task](https://github.com/Dobi-Vanish/L0)
 2. Перейдите в папку deployments и запустите через makefile:
    ```bash
    cd DeNet_Test_Task/deployments
