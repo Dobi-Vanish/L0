@@ -14,6 +14,10 @@ type PostgresRepository struct {
 	db *sql.DB
 }
 
+func (r *PostgresRepository) DB() *sql.DB {
+	return r.db
+}
+
 func New(dsn string) (*PostgresRepository, error) {
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
