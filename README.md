@@ -14,7 +14,7 @@
    make docker-up
 
 После успешного запуска доступны следующие endpoints:
- - Prometheus Metrics: `http://localhost:9090`
+ - Prometheus Metrics: `http://localhost:9090`. Пример метрик можно посмотреть по `cache_size_bytes`, `cache_hits_total`, `cache_items_count`.
  - Статистика кэша: `http://localhost:8081/cache/stats`
  - Просмотр заказа по ID: `http://localhost:8081/`
  - Добавление заказа (через Postman): `http://localhost:8081/add_order`
