@@ -234,5 +234,13 @@ func main() {
 
 	log.Printf("HTTP server started on :%s", cfg.HTTPServerPort)
 	mongoLogger.Log("INFO", "server", "HTTP server started on :"+cfg.HTTPServerPort)
-	log.Fatal(http.ListenAndServe(":"+cfg.HTTPServerPort, nil))
+	srv := &http.Server{
+		Addr:         ":" + cfg.HTTPServerPort,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  120 * time.Second,
+	}
+	log.Printf("HTTP server started on :%s", cfg.HTTPServerPort)
+	mongoLogger.Log("INFO", "server", "HTTP server started on :"+cfg.HTTPServerPort)
+	log.Fatal(srv.ListenAndServe())
 }
