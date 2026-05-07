@@ -131,6 +131,9 @@ services:
       - kafka-1
       - kafka-2
       - kafka-3
+    ports:
+      - "8082:8082"
+      - "6061:6061"
     environment:
       KAFKA_BROKERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
       POSTGRES_DSN: postgres://app_user:secure_password_123@postgres:5432/orders?sslmode=disable
