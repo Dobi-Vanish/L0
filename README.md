@@ -4,20 +4,17 @@
 1. Клонируйте репозиторий:
    ```bash
    git clone https://github.com/Dobi-Vanish/L0
-2. Перейдите в корень проекта и запустите через makefile поочерёдно команды:
+2. Перейдите в корень проекта, переключитесь на ветку `L4.5` и запустите через makefile поочерёдно команды:
    ```bash
    cd L0
+   git checkout L4.5
+   go mod tidy
    make build
    make docker-build
    make docker-up
-   make migrate-up
-3. Перезапустите контейнеры для применения всех настроек:
-   ```bash
-   make docker-down
-   make docker-up
 
 После успешного запуска доступны следующие endpoints:
- - Prometheus Metrics: `http://localhost:9090`
+ - Prometheus Metrics: `http://localhost:9090`. Пример метрик можно посмотреть по `cache_size_bytes`, `cache_hits_total`, `cache_items_count`.
  - Статистика кэша: `http://localhost:8081/cache/stats`
  - Просмотр заказа по ID: `http://localhost:8081/`
  - Добавление заказа (через Postman): `http://localhost:8081/add_order`
