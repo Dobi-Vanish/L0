@@ -1,7 +1,6 @@
 package migrations
 
 import (
-	"L0/pkg/errormsg"
 	"database/sql"
 	"embed"
 	"github.com/pressly/goose/v3"
@@ -15,11 +14,11 @@ func Apply(db *sql.DB) error {
 	goose.SetBaseFS(EmbedMigrations)
 
 	if err := goose.SetDialect("postgres"); err != nil {
-		return errormsg.ErrSetDialect
+		return err
 	}
 
 	if err := goose.Up(db, "."); err != nil {
-		return errormsg.ErrApplyMigrations
+		return err
 	}
 
 	return nil
