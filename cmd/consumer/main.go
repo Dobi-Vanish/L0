@@ -89,7 +89,7 @@ func main() {
 
 	go func() {
 		log.Println("pprof server started on :6061")
-		log.Println(http.ListenAndServe("localhost:6061", nil))
+		log.Println(http.ListenAndServe(":6061", nil))
 	}()
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -119,12 +119,6 @@ func main() {
 	if reader == nil {
 		mongoLogger.Log("ERROR", "consumer", "Failed to connect to Kafka after 10 attempts")
 		log.Fatal("Failed to connect to Kafka after 10 attempts")
-	}
-	defer reader.Close()
-
-	if reader == nil {
-		mongoLogger.Log("ERROR", "consumer", "Failed to connect to Kafka after 5 attempts")
-		log.Fatal("Failed to connect to Kafka after 5 attempts")
 	}
 	defer reader.Close()
 
