@@ -4,9 +4,11 @@
 1. Клонируйте репозиторий:
    ```bash
    git clone https://github.com/Dobi-Vanish/L0
-2. Перейдите в корень проекта и запустите через makefile поочерёдно команды:
+2. Перейдите в корень проекта, переключитесь на ветку `L4.5` и запустите через makefile поочерёдно команды:
    ```bash
    cd L0
+   git checkout L4.5
+   go mod tidy
    make build
    make docker-build
    make docker-up
