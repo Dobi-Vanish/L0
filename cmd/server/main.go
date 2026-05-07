@@ -3,7 +3,7 @@ package main
 import (
 	models "L0/internal/model"
 	"L0/migrations"
-	"encoding/json"
+	"github.com/goccy/go-json"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
@@ -61,12 +61,6 @@ func main() {
 		log.Printf("Failed to connect to database (attempt %d/%d): %v", i+1, maxDBAttempts, err)
 		time.Sleep(5 * time.Second)
 	}
-	if err != nil {
-		mongoLogger.Log("ERROR", "server", "Failed to connect to database: "+err.Error())
-		log.Fatal("Failed to connect to database:", err)
-	}
-
-	repo, err = repository.New(cfg.PostgresDSN)
 	if err != nil {
 		mongoLogger.Log("ERROR", "server", "Failed to connect to database: "+err.Error())
 		log.Fatal("Failed to connect to database:", err)
@@ -235,7 +229,7 @@ func main() {
 	})
 	go func() {
 		log.Println("pprof server started on :6060")
-		log.Println(http.ListenAndServe("localhost:6060", nil))
+		log.Println(http.ListenAndServe(":6060", nil))
 	}()
 
 	log.Printf("HTTP server started on :%s", cfg.HTTPServerPort)
