@@ -1,9 +1,11 @@
 package main
 
 import (
+	"L0/migrations"
 	"context"
 	"log"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
@@ -53,6 +55,11 @@ func main() {
 	}
 	defer repo.Close()
 
+	if err := migrations.Apply(repo.DB()); err != nil {
+		mongoLogger.Log("ERROR", "consumer", "Failed to apply migrations: "+err.Error())
+		log.Fatal("Failed to apply migrations:", err)
+	}
+
 	cache := cache.New(cfg.CacheMaxSize, time.Duration(cfg.CacheTTLMinutes)*time.Minute)
 	defer cache.Stop()
 
@@ -80,12 +87,17 @@ func main() {
 		http.ListenAndServe(":8082", nil)
 	}()
 
+	go func() {
+		log.Println("pprof server started on :6061")
+		log.Println(http.ListenAndServe(":6061", nil))
+	}()
+
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
 	var reader *kafka.Reader
-	for i := 0; i < 5; i++ {
-		reader = kafka.NewReader(kafka.ReaderConfig{
+	for i := 0; i < 10; i++ {
+		testReader := kafka.NewReader(kafka.ReaderConfig{
 			Brokers:  cfg.KafkaBrokers,
 			Topic:    cfg.KafkaTopic,
 			GroupID:  cfg.KafkaConsumerGroup,
@@ -93,19 +105,20 @@ func main() {
 			MaxBytes: 10e6,
 		})
 
-		conn, err := kafka.Dial("tcp", cfg.KafkaBrokers[0])
+		_, err := kafka.Dial("tcp", cfg.KafkaBrokers[0])
 		if err == nil {
-			conn.Close()
+			reader = testReader
 			break
 		}
 
-		log.Printf("Failed to connect to Kafka (attempt %d/5): %v", i+1, err)
-		time.Sleep(2 * time.Second)
+		testReader.Close()
+		log.Printf("Failed to connect to Kafka (attempt %d/10): %v", i+1, err)
+		time.Sleep(5 * time.Second)
+	}
 
-		if i == 4 {
-			mongoLogger.Log("ERROR", "consumer", "Failed to connect to Kafka: "+err.Error())
-			log.Fatal("Failed to connect to Kafka:", err)
-		}
+	if reader == nil {
+		mongoLogger.Log("ERROR", "consumer", "Failed to connect to Kafka after 10 attempts")
+		log.Fatal("Failed to connect to Kafka after 10 attempts")
 	}
 	defer reader.Close()
 

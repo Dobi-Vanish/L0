@@ -3,14 +3,19 @@ package service
 import (
 	"L0/internal/cache"
 	"L0/internal/metrics"
-	"L0/internal/model"
+	models "L0/internal/model"
 	"L0/internal/repository"
-	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/goccy/go-json"
 	"regexp"
 	"strings"
 	"time"
+)
+
+var (
+	emailRegex = regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$`)
+	phoneRegex = regexp.MustCompile(`^\+?[0-9]{10,15}$`)
 )
 
 type OrderService struct {
@@ -317,12 +322,10 @@ func (s *OrderService) validateOrder(order *models.Order) error {
 }
 
 func isValidEmail(email string) bool {
-	emailRegex := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$`)
 	return emailRegex.MatchString(strings.ToLower(email))
 }
 
 func isValidPhone(phone string) bool {
-	phoneRegex := regexp.MustCompile(`^\+?[0-9]{10,15}$`)
 	return phoneRegex.MatchString(phone)
 }
 

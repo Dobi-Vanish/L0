@@ -2,9 +2,11 @@ package main
 
 import (
 	models "L0/internal/model"
-	"encoding/json"
+	"L0/migrations"
+	"github.com/goccy/go-json"
 	"log"
 	"net/http"
+	_ "net/http/pprof"
 	"strings"
 	"time"
 
@@ -49,12 +51,26 @@ func main() {
 		}
 	}()
 
-	repo, err := repository.New(cfg.PostgresDSN)
+	var repo *repository.PostgresRepository
+	maxDBAttempts := 5
+	for i := 0; i < maxDBAttempts; i++ {
+		repo, err = repository.New(cfg.PostgresDSN)
+		if err == nil {
+			break
+		}
+		log.Printf("Failed to connect to database (attempt %d/%d): %v", i+1, maxDBAttempts, err)
+		time.Sleep(5 * time.Second)
+	}
 	if err != nil {
 		mongoLogger.Log("ERROR", "server", "Failed to connect to database: "+err.Error())
 		log.Fatal("Failed to connect to database:", err)
 	}
 	defer repo.Close()
+
+	if err := migrations.Apply(repo.DB()); err != nil {
+		mongoLogger.Log("ERROR", "server", "Failed to apply migrations: "+err.Error())
+		log.Fatal("Failed to apply migrations:", err)
+	}
 
 	cache := cache.New(cfg.CacheMaxSize, time.Duration(cfg.CacheTTLMinutes)*time.Minute)
 	defer cache.Stop()
@@ -211,8 +227,20 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("Cache cleared successfully"))
 	})
+	go func() {
+		log.Println("pprof server started on :6060")
+		log.Println(http.ListenAndServe(":6060", nil))
+	}()
 
 	log.Printf("HTTP server started on :%s", cfg.HTTPServerPort)
 	mongoLogger.Log("INFO", "server", "HTTP server started on :"+cfg.HTTPServerPort)
-	log.Fatal(http.ListenAndServe(":"+cfg.HTTPServerPort, nil))
+	srv := &http.Server{
+		Addr:         ":" + cfg.HTTPServerPort,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  120 * time.Second,
+	}
+	log.Printf("HTTP server started on :%s", cfg.HTTPServerPort)
+	mongoLogger.Log("INFO", "server", "HTTP server started on :"+cfg.HTTPServerPort)
+	log.Fatal(srv.ListenAndServe())
 }
