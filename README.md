@@ -9,6 +9,9 @@
  - Есть покрытие тестами бизнес-логики.
  - Собираются метрики Prometheus'ом которые можно посмотреть.
  - Запуск сервиса с помощью docker-compose.
+## 🎥 Быстрая демонстрация работы
+
+[![Видео демонстрация](https://img.youtube.com/vi/9wddzxrZc4E/0.jpg)](https://youtu.be/9wddzxrZc4E)
 
 ### Установка и запуск
 
@@ -16,10 +19,9 @@
 1. Клонируйте репозиторий:
    ```bash
    git clone https://github.com/Dobi-Vanish/L0
-2. Перейдите в корень проекта, переключитесь на ветку `L4.5` и запустите через makefile поочерёдно команды:
+2. Перейдите в корень проекта и запустите через makefile поочерёдно команды:
    ```bash
    cd L0
-   git checkout L4.5
    go mod tidy
    make build
    make docker-build
@@ -64,3 +66,21 @@
 - Количество аллокаций на заказ снизилось с **170 до 1**, что уменьшило нагрузку на GC.
 
 Профили, файлы бенчмарков и скриншоты сохранены в папке `profiling/`.
+2. Перейдите в корень проекта и запустите через makefile поочерёдно команды:
+   ```bash
+   cd L0
+   make build
+   make docker-build
+   make docker-up
+   make migrate-up
+3. Перезапустите контейнеры для применения всех настроек:
+   ```bash
+   make docker-down
+   make docker-up
+
+После успешного запуска доступны следующие endpoints:
+ - Prometheus Metrics: `http://localhost:9090`
+ - Статистика кэша: `http://localhost:8081/cache/stats`
+ - Просмотр заказа по ID: `http://localhost:8081/`
+ - Добавление заказа (через Postman): `http://localhost:8081/add_order`
+Для подключения и просмотра логов через MongoDB подключиться через URI: `mongodb://localhost:27017`.
