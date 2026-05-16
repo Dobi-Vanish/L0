@@ -65,19 +65,6 @@
 - Пропускная способность: ~35k req/s (hey, задержка p50=1.2ms).
 - Количество аллокаций на заказ снизилось с **170 до 1**, что уменьшило нагрузку на GC.
 
-Профили, файлы бенчмарков и скриншоты сохранены в папке `profiling/`.
-2. Перейдите в корень проекта и запустите через makefile поочерёдно команды:
-   ```bash
-   cd L0
-   make build
-   make docker-build
-   make docker-up
-   make migrate-up
-3. Перезапустите контейнеры для применения всех настроек:
-   ```bash
-   make docker-down
-   make docker-up
-
 После успешного запуска доступны следующие endpoints:
  - Prometheus Metrics: `http://localhost:9090`
  - Статистика кэша: `http://localhost:8081/cache/stats`
